@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Band Stage Designer – Custom Images</title>
+  <title>Band Stage Designer – Custom Background, Delete, and Locked Resizing</title>
   <style>
     body {
       margin: 0;
@@ -19,11 +19,12 @@
       border-right: 1px solid #ccc;
       overflow-y: auto;
     }
-    /* Stage area styling */
+    /* Stage area styling with custom background image */
     #stage {
       flex: 1;
       position: relative;
-      background: #e8e8e8;
+      background: url('images/stage.png') no-repeat center center;
+      background-size: cover;
       margin: 10px;
       border: 2px dashed #999;
     }
@@ -61,6 +62,23 @@
       right: 0;
       bottom: 0;
       cursor: se-resize;
+      z-index: 100;
+    }
+    /* Delete button for stage items */
+    .delete-btn {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      width: 16px;
+      height: 16px;
+      background: red;
+      color: white;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 16px;
+      font-size: 12px;
+      cursor: pointer;
+      z-index: 1000;
     }
   </style>
 </head>
@@ -80,8 +98,8 @@
       <img src="https://github.com/Varneram/Images/blob/main/drums.png?raw=true" alt="Drums">
       <span>Drums</span>
     </div>
-    <div class="instrument" draggable="true" data-type="mic">
-      <img src="https://github.com/Varneram/Images/blob/main/mic.png?raw=true" alt="mic">
+    <div class="instrument" draggable="true" data-type="microphone">
+      <img src="https://github.com/Varneram/Images/blob/main/microphone.png?raw=true" alt="Microphone">
       <span>Mic</span>
     </div>
     <hr>
@@ -144,8 +162,8 @@
         item.innerHTML = '<img src="https://github.com/Varneram/Images/blob/main/bass.png?raw=true" alt="Bass" style="width:100%; height:100%;">';
       } else if (type === 'drums') {
         item.innerHTML = '<img src="https://github.com/Varneram/Images/blob/main/drums.png?raw=true" alt="Drums" style="width:100%; height:100%;">';
-      } else if (type === 'mic') {
-        item.innerHTML = '<img src="https://github.com/Varneram/Images/blob/main/mic.png?raw=true" alt="mic" style="width:100%; height:100%;">';
+      } else if (type === 'microphone') {
+        item.innerHTML = '<img src="https://github.com/Varneram/Images/blob/main/microphone.png?raw=true" alt="Microphone" style="width:100%; height:100%;">';
       } else if (type === 'square') {
         item.innerHTML = '<div style="width:100%; height:100%; background:red;"></div>';
       } else if (type === 'circle') {
@@ -159,7 +177,18 @@
       item.style.top = (y - 24) + 'px';
       stage.appendChild(item);
       
-      // Enable dragging and resizing for the new item.
+      // Add a delete button.
+      const deleteBtn = document.createElement('div');
+      deleteBtn.classList.add('delete-btn');
+      deleteBtn.innerText = '×';
+      deleteBtn.title = 'Delete item';
+      item.appendChild(deleteBtn);
+      deleteBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        item.remove();
+      });
+      
+      // Enable dragging and resizing (with locked aspect ratio) for the new item.
       makeDraggableAndResizable(item);
     }
 
@@ -171,8 +200,8 @@
       el.addEventListener('mousedown', dragMouseDown);
       
       function dragMouseDown(e) {
-        // Ignore if the resizer handle is clicked.
-        if (e.target.classList.contains('resizer')) return;
+        // Ignore if the resizer or delete button is clicked.
+        if (e.target.classList.contains('resizer') || e.target.classList.contains('delete-btn')) return;
         e.preventDefault();
         offsetX = e.clientX - el.getBoundingClientRect().left;
         offsetY = e.clientY - el.getBoundingClientRect().top;
@@ -205,21 +234,27 @@
       resizer.classList.add('resizer');
       el.appendChild(resizer);
       
+      // Variables for locked aspect ratio resizing.
+      let initialWidth, initialHeight, initialMouseX, ratio;
+      
       resizer.addEventListener('mousedown', initResize);
       
       function initResize(e) {
         e.stopPropagation();
         e.preventDefault();
+        initialWidth = el.offsetWidth;
+        initialHeight = el.offsetHeight;
+        initialMouseX = e.clientX;
+        // Calculate the aspect ratio.
+        ratio = initialHeight / initialWidth;
         window.addEventListener('mousemove', resizeElement);
         window.addEventListener('mouseup', stopResize);
       }
       
       function resizeElement(e) {
-        const elRect = el.getBoundingClientRect();
-        let newWidth = e.clientX - elRect.left;
-        let newHeight = e.clientY - elRect.top;
+        let newWidth = initialWidth + (e.clientX - initialMouseX);
         if (newWidth < 20) newWidth = 20;
-        if (newHeight < 20) newHeight = 20;
+        let newHeight = newWidth * ratio;
         el.style.width = newWidth + 'px';
         el.style.height = newHeight + 'px';
       }
