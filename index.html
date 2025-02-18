@@ -2,37 +2,36 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Band Stage Designer – Custom Background, Delete, and Locked Resizing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Band Stage Designer – Full Stage Drop Area</title>
   <style>
-    body {
+    /* Reset and base styles */
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      padding: 0;
+      height: 100%;
+    }
+    /* Layout container: Sidebar and Stage area */
+    .container {
       display: flex;
-      height: 100vh;
+      height: 100%;
     }
     /* Sidebar styling */
     #sidebar {
       width: 150px;
       background: #f0f0f0;
       padding: 10px;
-      box-sizing: border-box;
       border-right: 1px solid #ccc;
       overflow-y: auto;
     }
-    /* Stage area styling with custom background image */
-    #stage {
-      flex: 1;
-      position: relative;
-      background: url('stage.jpg') no-repeat center center;
-      background-size: cover;
-      margin: 10px;
-      border: 2px dashed #999;
-    }
-    /* Sidebar draggable items */
+    /* Sidebar items */
     .instrument {
       text-align: center;
       margin-bottom: 20px;
-      cursor: grab;
+      cursor: pointer;
     }
     .instrument img,
     .instrument svg,
@@ -48,23 +47,30 @@
       display: block;
       font-size: 14px;
     }
-    /* Items dropped on stage */
+    /* Stage container: fills remaining space and centers the stage */
+    #stage-container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 10px;
+    }
+    /* Stage: a dark grey 16:9 rectangle that fills most of the drop space */
+    #stage {
+      width: 100%;
+      max-width: 1200px;
+      aspect-ratio: 16 / 9;
+      background-color: #333;
+      border: 2px dashed #999;
+      position: relative;
+    }
+    /* Stage items (draggable/resizable elements) */
     .stage-item {
       position: absolute;
       user-select: none;
+      touch-action: none; /* Prevent default gestures */
     }
-    /* Resizer handle for stage items */
-    .resizer {
-      width: 12px;
-      height: 12px;
-      background: #ccc;
-      position: absolute;
-      right: 0;
-      bottom: 0;
-      cursor: se-resize;
-      z-index: 100;
-    }
-    /* Delete button for stage items */
+    /* Delete button (small red circle with an "×") */
     .delete-btn {
       position: absolute;
       top: -8px;
@@ -80,61 +86,112 @@
       cursor: pointer;
       z-index: 1000;
     }
+    /* Resizer handle in the bottom-right corner */
+    .resizer {
+      width: 12px;
+      height: 12px;
+      background: #ccc;
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      cursor: se-resize;
+      z-index: 100;
+    }
+    /* Responsive adjustments for mobile */
+    @media (max-width: 600px) {
+      .container {
+        flex-direction: column;
+      }
+      #sidebar {
+        width: 100%;
+        display: flex;
+        overflow-x: auto;
+        border-right: none;
+        border-bottom: 1px solid #ccc;
+      }
+      .instrument {
+        flex: 1;
+        margin-bottom: 0;
+      }
+      #stage-container {
+        flex: none;
+      }
+      #stage {
+        width: 100%;
+        max-width: none;
+      }
+    }
   </style>
 </head>
 <body>
-  <!-- Sidebar with instruments and shapes -->
-  <div id="sidebar">
-    <!-- Instruments with custom images -->
-    <div class="instrument" draggable="true" data-type="guitar">
-      <img src="https://github.com/Varneram/Images/blob/main/guitar.png?raw=true" alt="Guitar">
-      <span>Guitar</span>
+  <div class="container">
+    <!-- Sidebar with instruments and shapes -->
+    <div id="sidebar">
+      <!-- For desktop, these are draggable. For mobile, tapping selects the instrument. -->
+      <div class="instrument" draggable="true" data-type="guitar">
+        <img src="https://github.com/Varneram/Images/blob/main/guitar.png?raw=true" alt="Guitar">
+        <span>Guitar</span>
+      </div>
+      <div class="instrument" draggable="true" data-type="bass">
+        <img src="https://github.com/Varneram/Images/blob/main/bass.png?raw=true" alt="Bass">
+        <span>Bass</span>
+      </div>
+      <div class="instrument" draggable="true" data-type="drums">
+        <img src="https://github.com/Varneram/Images/blob/main/drums.png?raw=true" alt="Drums">
+        <span>Drums</span>
+      </div>
+      <div class="instrument" draggable="true" data-type="mic">
+        <img src="https://github.com/Varneram/Images/blob/main/mic.png?raw=true" alt="mic">
+        <span>Mic</span>
+      </div>
+      <hr>
+      <!-- Simple Shapes -->
+      <div class="instrument" draggable="true" data-type="square">
+        <div style="width:48px; height:48px; background:red;"></div>
+        <span>Square</span>
+      </div>
+      <div class="instrument" draggable="true" data-type="circle">
+        <div style="width:48px; height:48px; background:orange; border-radius:50%;"></div>
+        <span>Circle</span>
+      </div>
+      <div class="instrument" draggable="true" data-type="triangle">
+        <svg viewBox="0 0 100 100" style="width:48px; height:48px; display:block;">
+          <polygon points="50,0 0,100 100,100" fill="purple"/>
+        </svg>
+        <span>Triangle</span>
+      </div>
     </div>
-    <div class="instrument" draggable="true" data-type="bass">
-      <img src="https://github.com/Varneram/Images/blob/main/bass.png?raw=true" alt="Bass">
-      <span>Bass</span>
-    </div>
-    <div class="instrument" draggable="true" data-type="drums">
-      <img src="https://github.com/Varneram/Images/blob/main/drums.png?raw=true" alt="Drums">
-      <span>Drums</span>
-    </div>
-    <div class="instrument" draggable="true" data-type="mic">
-      <img src="https://github.com/Varneram/Images/blob/main/mic.png?raw=true" alt="mic">
-      <span>Mic</span>
-    </div>
-    <hr>
-    <!-- Simple Shapes -->
-    <div class="instrument" draggable="true" data-type="square">
-      <div style="width:48px; height:48px; background:red;"></div>
-      <span>Square</span>
-    </div>
-    <div class="instrument" draggable="true" data-type="circle">
-      <div style="width:48px; height:48px; background:orange; border-radius:50%;"></div>
-      <span>Circle</span>
-    </div>
-    <div class="instrument" draggable="true" data-type="triangle">
-      <svg viewBox="0 0 100 100" style="width:48px; height:48px; display:block;">
-        <polygon points="50,0 0,100 100,100" fill="purple"/>
-      </svg>
-      <span>Triangle</span>
+
+    <!-- Stage container: centers the stage rectangle -->
+    <div id="stage-container">
+      <div id="stage"></div>
     </div>
   </div>
 
-  <!-- Stage area -->
-  <div id="stage"></div>
-
   <script>
-    // Enable drag for sidebar items.
+    // Global variable for mobile: holds the currently selected instrument type.
+    let currentInstrument = null;
+
+    // Get all sidebar instruments.
     const instruments = document.querySelectorAll('.instrument');
+
+    // For desktop: use HTML5 drag events.
     instruments.forEach(inst => {
       inst.addEventListener('dragstart', function(e) {
-        const type = e.target.closest('.instrument').getAttribute('data-type');
+        const type = inst.getAttribute('data-type');
         e.dataTransfer.setData('text/plain', type);
+      });
+      // For mobile/touch: tap to select the instrument.
+      inst.addEventListener('click', function(e) {
+        currentInstrument = inst.getAttribute('data-type');
+        console.log('Selected instrument:', currentInstrument);
+        // (Optional) Visual feedback can be added here.
       });
     });
 
     const stage = document.getElementById('stage');
-    // Allow dropping by preventing default behavior.
+
+    // Desktop: Allow dropping items on the stage via drag–drop.
     stage.addEventListener('dragover', function(e) {
       e.preventDefault();
     });
@@ -147,7 +204,19 @@
       createStageItem(type, x, y);
     });
 
-    // Create a new stage item with an initial size of 48x48px.
+    // Mobile: When the stage is tapped and an instrument is selected, add the item.
+    stage.addEventListener('click', function(e) {
+      // Only if the stage itself was tapped (not an item on it)
+      if (e.target.id === 'stage' && currentInstrument !== null) {
+        const stageRect = stage.getBoundingClientRect();
+        const x = e.clientX - stageRect.left;
+        const y = e.clientY - stageRect.top;
+        createStageItem(currentInstrument, x, y);
+        currentInstrument = null; // clear the selection after placement
+      }
+    });
+
+    // Create a new stage item at (x, y) with an initial size of 48x48px.
     function createStageItem(type, x, y) {
       const item = document.createElement('div');
       item.classList.add('stage-item');
@@ -155,7 +224,7 @@
       item.style.width = '48px';
       item.style.height = '48px';
 
-      // Set the inner content based on the type.
+      // Set inner content based on the type.
       if (type === 'guitar') {
         item.innerHTML = '<img src="https://github.com/Varneram/Images/blob/main/guitar.png?raw=true" alt="Guitar" style="width:100%; height:100%;">';
       } else if (type === 'bass') {
@@ -171,12 +240,12 @@
       } else if (type === 'triangle') {
         item.innerHTML = '<svg viewBox="0 0 100 100" style="width:100%; height:100%;"><polygon points="50,0 0,100 100,100" fill="purple"/></svg>';
       }
-      
-      // Center the item at the drop point.
+
+      // Center the item on the drop point.
       item.style.left = (x - 24) + 'px';
       item.style.top = (y - 24) + 'px';
       stage.appendChild(item);
-      
+
       // Add a delete button.
       const deleteBtn = document.createElement('div');
       deleteBtn.classList.add('delete-btn');
@@ -187,35 +256,37 @@
         e.stopPropagation();
         item.remove();
       });
-      
-      // Enable dragging and resizing (with locked aspect ratio) for the new item.
+
+      // Enable dragging and locked-aspect–ratio resizing.
       makeDraggableAndResizable(item);
     }
 
-    // Add drag-and-resize functionality to stage items.
+    // Function to enable dragging and resizing (with locked aspect ratio)
     function makeDraggableAndResizable(el) {
       let offsetX, offsetY;
-      
-      // Drag functionality.
-      el.addEventListener('mousedown', dragMouseDown);
-      
-      function dragMouseDown(e) {
-        // Ignore if the resizer or delete button is clicked.
+
+      // Use pointer events to support both mouse and touch.
+      el.addEventListener('pointerdown', dragPointerDown);
+
+      function dragPointerDown(e) {
+        // Ignore if clicking on the resizer or delete button.
         if (e.target.classList.contains('resizer') || e.target.classList.contains('delete-btn')) return;
         e.preventDefault();
+        el.setPointerCapture(e.pointerId);
         offsetX = e.clientX - el.getBoundingClientRect().left;
         offsetY = e.clientY - el.getBoundingClientRect().top;
         el.style.zIndex = Date.now();
-        document.addEventListener('mousemove', elementDrag);
-        document.addEventListener('mouseup', stopElementDrag);
+        el.addEventListener('pointermove', elementDrag);
+        el.addEventListener('pointerup', stopElementDrag);
+        el.addEventListener('pointercancel', stopElementDrag);
       }
-      
+
       function elementDrag(e) {
         e.preventDefault();
         const stageRect = stage.getBoundingClientRect();
         let newX = e.clientX - stageRect.left - offsetX;
         let newY = e.clientY - stageRect.top - offsetY;
-        // Constrain within stage boundaries.
+        // Constrain movement within the stage.
         if (newX < 0) newX = 0;
         if (newY < 0) newY = 0;
         if (newX + el.offsetWidth > stage.clientWidth) newX = stage.clientWidth - el.offsetWidth;
@@ -223,34 +294,37 @@
         el.style.left = newX + 'px';
         el.style.top = newY + 'px';
       }
-      
-      function stopElementDrag() {
-        document.removeEventListener('mousemove', elementDrag);
-        document.removeEventListener('mouseup', stopElementDrag);
+
+      function stopElementDrag(e) {
+        el.releasePointerCapture(e.pointerId);
+        el.removeEventListener('pointermove', elementDrag);
+        el.removeEventListener('pointerup', stopElementDrag);
+        el.removeEventListener('pointercancel', stopElementDrag);
       }
-      
+
       // Create and attach a resizer handle.
       const resizer = document.createElement('div');
       resizer.classList.add('resizer');
       el.appendChild(resizer);
-      
+
       // Variables for locked aspect ratio resizing.
       let initialWidth, initialHeight, initialMouseX, ratio;
-      
-      resizer.addEventListener('mousedown', initResize);
-      
+
+      resizer.addEventListener('pointerdown', initResize);
+
       function initResize(e) {
         e.stopPropagation();
         e.preventDefault();
         initialWidth = el.offsetWidth;
         initialHeight = el.offsetHeight;
         initialMouseX = e.clientX;
-        // Calculate the aspect ratio.
-        ratio = initialHeight / initialWidth;
-        window.addEventListener('mousemove', resizeElement);
-        window.addEventListener('mouseup', stopResize);
+        ratio = initialHeight / initialWidth; // locked aspect ratio
+        resizer.setPointerCapture(e.pointerId);
+        resizer.addEventListener('pointermove', resizeElement);
+        resizer.addEventListener('pointerup', stopResize);
+        resizer.addEventListener('pointercancel', stopResize);
       }
-      
+
       function resizeElement(e) {
         let newWidth = initialWidth + (e.clientX - initialMouseX);
         if (newWidth < 20) newWidth = 20;
@@ -258,10 +332,12 @@
         el.style.width = newWidth + 'px';
         el.style.height = newHeight + 'px';
       }
-      
-      function stopResize() {
-        window.removeEventListener('mousemove', resizeElement);
-        window.removeEventListener('mouseup', stopResize);
+
+      function stopResize(e) {
+        resizer.releasePointerCapture(e.pointerId);
+        resizer.removeEventListener('pointermove', resizeElement);
+        resizer.removeEventListener('pointerup', stopResize);
+        resizer.removeEventListener('pointercancel', stopResize);
       }
     }
   </script>
