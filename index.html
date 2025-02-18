@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Band Stage Designer – Custom Images</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+    }
+    /* Sidebar styling */
+    #sidebar {
+      width: 150px;
+      background: #f0f0f0;
+      padding: 10px;
+      box-sizing: border-box;
+      border-right: 1px solid #ccc;
+      overflow-y: auto;
+    }
+    /* Stage area styling */
+    #stage {
+      flex: 1;
+      position: relative;
+      background: #e8e8e8;
+      margin: 10px;
+      border: 2px dashed #999;
+    }
+    /* Sidebar draggable items */
+    .instrument {
+      text-align: center;
+      margin-bottom: 20px;
+      cursor: grab;
+    }
+    .instrument img,
+    .instrument svg,
+    .instrument div {
+      display: block;
+      margin: 0 auto 5px;
+    }
+    .instrument img {
+      width: 48px;
+      height: 48px;
+    }
+    .instrument span {
+      display: block;
+      font-size: 14px;
+    }
+    /* Items dropped on stage */
+    .stage-item {
+      position: absolute;
+      user-select: none;
+    }
+    /* Resizer handle for stage items */
+    .resizer {
+      width: 12px;
+      height: 12px;
+      background: #ccc;
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      cursor: se-resize;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar with instruments and shapes -->
+  <div id="sidebar">
+    <!-- Instruments with custom images -->
+    <div class="instrument" draggable="true" data-type="guitar">
+      <img src="https://github.com/Varneram/Images/blob/main/guitar.png?raw=true" alt="Guitar">
+      <span>Guitar</span>
+    </div>
+    <div class="instrument" draggable="true" data-type="bass">
+      <img src="https://github.com/Varneram/Images/blob/main/bass.png?raw=true" alt="Bass">
+      <span>Bass</span>
+    </div>
+    <div class="instrument" draggable="true" data-type="drums">
+      <img src="https://github.com/Varneram/Images/blob/main/drums.png?raw=true" alt="Drums">
+      <span>Drums</span>
+    </div>
+    <div class="instrument" draggable="true" data-type="microphone">
+      <img src="https://github.com/Varneram/Images/blob/main/microphone.png?raw=true" alt="Microphone">
+      <span>Mic</span>
+    </div>
+    <hr>
+    <!-- Simple Shapes -->
+    <div class="instrument" draggable="true" data-type="square">
+      <div style="width:48px; height:48px; background:red;"></div>
+      <span>Square</span>
+    </div>
+    <div class="instrument" draggable="true" data-type="circle">
+      <div style="width:48px; height:48px; background:orange; border-radius:50%;"></div>
+      <span>Circle</span>
+    </div>
+    <div class="instrument" draggable="true" data-type="triangle">
+      <svg viewBox="0 0 100 100" style="width:48px; height:48px; display:block;">
+        <polygon points="50,0 0,100 100,100" fill="purple"/>
+      </svg>
+      <span>Triangle</span>
+    </div>
+  </div>
+
+  <!-- Stage area -->
+  <div id="stage"></div>
+
+  <script>
+    // Enable drag for sidebar items.
+    const instruments = document.querySelectorAll('.instrument');
+    instruments.forEach(inst => {
+      inst.addEventListener('dragstart', function(e) {
+        const type = e.target.closest('.instrument').getAttribute('data-type');
+        e.dataTransfer.setData('text/plain', type);
+      });
+    });
+
+    const stage = document.getElementById('stage');
+    // Allow dropping by preventing default behavior.
+    stage.addEventListener('dragover', function(e) {
+      e.preventDefault();
+    });
+    stage.addEventListener('drop', function(e) {
+      e.preventDefault();
+      const type = e.dataTransfer.getData('text/plain');
+      const stageRect = stage.getBoundingClientRect();
+      const x = e.clientX - stageRect.left;
+      const y = e.clientY - stageRect.top;
+      createStageItem(type, x, y);
+    });
+
+    // Create a new stage item with an initial size of 48x48px.
+    function createStageItem(type, x, y) {
+      const item = document.createElement('div');
+      item.classList.add('stage-item');
+      item.setAttribute('data-type', type);
+      item.style.width = '48px';
+      item.style.height = '48px';
+
+      // Set the inner content based on the type.
+      if (type === 'guitar') {
+        item.innerHTML = '<img src="https://github.com/Varneram/Images/blob/main/guitar.png?raw=true" alt="Guitar" style="width:100%; height:100%;">';
+      } else if (type === 'bass') {
+        item.innerHTML = '<img src="https://github.com/Varneram/Images/blob/main/bass.png?raw=true" alt="Bass" style="width:100%; height:100%;">';
+      } else if (type === 'drums') {
+        item.innerHTML = '<img src="https://github.com/Varneram/Images/blob/main/drums.png?raw=true" alt="Drums" style="width:100%; height:100%;">';
+      } else if (type === 'microphone') {
+        item.innerHTML = '<img src="https://github.com/Varneram/Images/blob/main/microphone.png?raw=true" alt="Microphone" style="width:100%; height:100%;">';
+      } else if (type === 'square') {
+        item.innerHTML = '<div style="width:100%; height:100%; background:red;"></div>';
+      } else if (type === 'circle') {
+        item.innerHTML = '<div style="width:100%; height:100%; background:orange; border-radius:50%;"></div>';
+      } else if (type === 'triangle') {
+        item.innerHTML = '<svg viewBox="0 0 100 100" style="width:100%; height:100%;"><polygon points="50,0 0,100 100,100" fill="purple"/></svg>';
+      }
+      
+      // Center the item at the drop point.
+      item.style.left = (x - 24) + 'px';
+      item.style.top = (y - 24) + 'px';
+      stage.appendChild(item);
+      
+      // Enable dragging and resizing for the new item.
+      makeDraggableAndResizable(item);
+    }
+
+    // Add drag-and-resize functionality to stage items.
+    function makeDraggableAndResizable(el) {
+      let offsetX, offsetY;
+      
+      // Drag functionality.
+      el.addEventListener('mousedown', dragMouseDown);
+      
+      function dragMouseDown(e) {
+        // Ignore if the resizer handle is clicked.
+        if (e.target.classList.contains('resizer')) return;
+        e.preventDefault();
+        offsetX = e.clientX - el.getBoundingClientRect().left;
+        offsetY = e.clientY - el.getBoundingClientRect().top;
+        el.style.zIndex = Date.now();
+        document.addEventListener('mousemove', elementDrag);
+        document.addEventListener('mouseup', stopElementDrag);
+      }
+      
+      function elementDrag(e) {
+        e.preventDefault();
+        const stageRect = stage.getBoundingClientRect();
+        let newX = e.clientX - stageRect.left - offsetX;
+        let newY = e.clientY - stageRect.top - offsetY;
+        // Constrain within stage boundaries.
+        if (newX < 0) newX = 0;
+        if (newY < 0) newY = 0;
+        if (newX + el.offsetWidth > stage.clientWidth) newX = stage.clientWidth - el.offsetWidth;
+        if (newY + el.offsetHeight > stage.clientHeight) newY = stage.clientHeight - el.offsetHeight;
+        el.style.left = newX + 'px';
+        el.style.top = newY + 'px';
+      }
+      
+      function stopElementDrag() {
+        document.removeEventListener('mousemove', elementDrag);
+        document.removeEventListener('mouseup', stopElementDrag);
+      }
+      
+      // Create and attach a resizer handle.
+      const resizer = document.createElement('div');
+      resizer.classList.add('resizer');
+      el.appendChild(resizer);
+      
+      resizer.addEventListener('mousedown', initResize);
+      
+      function initResize(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        window.addEventListener('mousemove', resizeElement);
+        window.addEventListener('mouseup', stopResize);
+      }
+      
+      function resizeElement(e) {
+        const elRect = el.getBoundingClientRect();
+        let newWidth = e.clientX - elRect.left;
+        let newHeight = e.clientY - elRect.top;
+        if (newWidth < 20) newWidth = 20;
+        if (newHeight < 20) newHeight = 20;
+        el.style.width = newWidth + 'px';
+        el.style.height = newHeight + 'px';
+      }
+      
+      function stopResize() {
+        window.removeEventListener('mousemove', resizeElement);
+        window.removeEventListener('mouseup', stopResize);
+      }
+    }
+  </script>
+</body>
+</html>
